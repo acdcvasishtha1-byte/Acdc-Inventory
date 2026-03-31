@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>ATL Lab Inventory System</title>
+    <link rel="shortcut icon" href="./adcdlogo.png" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- SheetJS CDN - Fixed -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f0f4ff 0%, #e6edf5 100%);
+            min-height: 100vh;
+        }
+
+        .login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0a2a3b, #144a6e);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .login-box {
+            background: white;
+            padding: 40px 35px;
+            border-radius: 28px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3);
+            animation: fadeInUp 0.5s ease;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .login-logo {
+            text-align: center;
+        }
+
+        .login-logo img{
+            width: 32%;
+        }
+
+        .login-logo i {
+            font-size: 60px;
+            color: #1e5a8c;
+        }
+
+        .login-box h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #0a2a44;
+            font-weight: 700;
+            font-size: 1.6rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #334155;
+            font-size: 0.9rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: #1e5a8c;
+            box-shadow: 0 0 0 3px rgba(30,90,140,0.1);
+        }
+
+        .login-btn, .google-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #1e5a8c, #0f3b5c);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 10px;
+        }
+
+        .google-btn {
+            background: white;
+            color: #333;
+            border: 2px solid #e2e8f0;
+        }
+
+        .google-btn:hover {
+            background: #f8fafc;
+            transform: translateY(-2px);
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(30,90,140,0.3);
+        }
+
+        .auth-toggle {
+            text-align: center;
+            margin-top: 20px;
+            color: #1e5a8c;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .auth-toggle:hover {
+            text-decoration: underline;
+        }
+
+        .login-error {
+            color: #dc2626;
+            margin-top: 12px;
+            text-align: center;
+            font-size: 0.85rem;
+        }
+
+        .main-app {
+            display: none;
+            min-height: 100vh;
+        }
+
+        .app-header {
+            background: white;
+            padding: 16px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-area h1 {
+            font-size: 1.4rem;
+            background: linear-gradient(135deg, #0b3b5f, #2c7cb6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 800;
+        }
+
+        .user-badge {
+            background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+            padding: 8px 20px;
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .user-info-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 700;
+            color: #0f3b5c;
+            font-size: 0.9rem;
+        }
+
+        .user-email {
+            font-size: 0.7rem;
+            color: #64748b;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 8px 18px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #1e5a8c, #0f3b5c);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(30,90,140,0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16,185,129,0.3);
+        }
+
+        .btn-outline {
+            background: white;
+            border: 2px solid #e2e8f0;
+            color: #475569;
+        }
+
+        .btn-outline:hover {
+            background: #f8fafc;
+            border-color: #1e5a8c;
+        }
+
+        .nav-tabs {
+            background: white;
+            padding: 0 28px;
+            display: flex;
+            gap: 8px;
+            border-bottom: 2px solid #e2e8f0;
+            flex-wrap: wrap;
+        }
+
+        .nav-tab {
+            padding: 14px 28px;
+            background: none;
+            border: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            color: #64748b;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-tab:hover {
+            color: #1e5a8c;
+        }
+
+        .nav-tab.active {
+            color: #349ed2;
+            border-bottom: 3px solid #f87103;
+            background: #f8fafc;
+        }
+
+        .content-panel {
+            display: none;
+            padding: 24px 28px;
+            max-width: 1600px;
+            margin: 0 auto;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .content-panel.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-card {
+            background: white;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            margin-bottom: 24px;
+        }
+
+        .card-header {
+            padding: 20px 24px;
+            border-bottom: 2px solid #f1f5f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .card-header h2 {
+            font-size: 1.2rem;
+            color: #349ed2;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-body {
+            padding: 24px;
+        }
+
+        .product-actions-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 200px;
+            display: flex;
+            align-items: center;
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 0 16px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .search-input input {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            outline: none;
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 6px;
+            background: #f1f5f9;
+            padding: 4px;
+            border-radius: 12px;
+        }
+
+        .view-btn {
+            padding: 6px 14px;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .view-btn.active {
+            background: #1e5a8c;
+            color: white;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            min-width: 600px;
+        }
+
+        .data-table th {
+            background: #f8fafc;
+            padding: 12px 10px;
+            text-align: left;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .data-table td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #f0f2f5;
+        }
+
+        .product-img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 10px;
+            background: #f1f5f9;
+            display: block;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .inventory-card {
+            background: white;
+            border-radius: 20px;
+            border: 1px solid #eef2ff;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .inventory-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px -12px rgba(0,0,0,0.15);
+        }
+
+        .card-img-area {
+            height: 140px;
+            background: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .card-img-area img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .card-img-area i {
+            font-size: 3rem;
+            color: #1e5a8c;
+        }
+
+        .card-info {
+            padding: 16px;
+        }
+
+        .issue-form-container {
+            background: #f8fafc;
+            padding: 24px;
+            border-radius: 20px;
+            margin-bottom: 28px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .form-control:focus {
+            border-color: #1e5a8c;
+        }
+
+        .issue-btn-full {
+            width: 100%;
+            padding: 14px;
+            font-size: 1rem;
+        }
+
+        .issue-log-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            min-width: 700px;
+        }
+
+        .issue-log-table th {
+            background: #f8fafc;
+            padding: 12px 10px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .issue-log-table td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #f0f2f5;
+        }
+
+        .badge-issued {
+            background: #fef3c7;
+            color: #d97706;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .badge-returned {
+            background: #d1fae5;
+            color: #10b981;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .return-action-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+        }
+
+        .return-action-btn:hover {
+            background: #059669;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-container {
+            background: white;
+            border-radius: 28px;
+            width: 90%;
+            max-width: 550px;
+            max-height: 85vh;
+            overflow-y: auto;
+            animation: fadeInUp 0.3s;
+            position: relative;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #0f3b5c, #1e5a8c);
+            padding: 20px 24px;
+            color: white;
+            position: sticky;
+            top: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .close-modal-icon {
+            background: rgba(255,255,255,0.2);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .close-modal-icon:hover {
+            background: rgba(255,255,255,0.3);
+            transform: rotate(90deg);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .app-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            .nav-tabs {
+                justify-content: center;
+            }
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .product-actions-bar {
+                flex-direction: column;
+            }
+            .search-input {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-screen" id="loginScreen">
+        <div class="login-box">
+            <div class="login-logo">
+                <img src="/adcdlogo1.png" alt="logo">
+            </div>
+            <h2>ATL Lab Inventory</h2>
+            <div id="loginForm">
+                <div class="form-group">
+                    <label><i class="fas fa-envelope"></i> Email Address</label>
+                    <input type="email" id="loginEmail" placeholder="Enter your email">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-lock"></i> Password</label>
+                    <input type="password" id="loginPassword" placeholder="Enter your password">
+                </div>
+                <button class="login-btn" id="loginBtn"><i class="fas fa-sign-in-alt"></i> Login</button>
+                <button class="google-btn" id="googleLoginBtn"><i class="fab fa-google"></i> Login with Google</button>
+                <div class="auth-toggle" id="showRegister">
+                    Don't have an account? Register here
+                </div>
+            </div>
+            <div id="registerForm" style="display: none;">
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> Full Name</label>
+                    <input type="text" id="regName" placeholder="Enter your full name">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-envelope"></i> Email Address</label>
+                    <input type="email" id="regEmail" placeholder="Enter your email">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-lock"></i> Password</label>
+                    <input type="password" id="regPassword" placeholder="Enter password (min 6 characters)">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-lock"></i> Confirm Password</label>
+                    <input type="password" id="regConfirmPassword" placeholder="Confirm password">
+                </div>
+                <button class="login-btn" id="registerBtn"><i class="fas fa-user-plus"></i> Register</button>
+                <div class="auth-toggle" id="showLogin">
+                    Already have an account? Login here
+                </div>
+            </div>
+            <div id="loginError" class="login-error"></div>
+        </div>
+    </div>
+
+    <div class="main-app" id="mainApp">
+        <div class="app-header">
+            <div class="logo-area">
+                <img src="file_cxblpf.png" alt="" height="60px">
+            </div>
+            
+            <div class="header-buttons">
+                <button class="btn btn-success" id="exportExcelBtn"><i class="fas fa-file-excel"></i> Export Excel</button>
+                <button class="btn btn-primary" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                <div class="" id="]userBadge">
+                <img id="userAvatar" class="user-avatar" src="https://via.placeholder.com/40" alt="Avatar">
+                <div class="user-info-text">
+                    <div class="user-name" id="userName" hidden>Loading...</div>
+                    <div class="user-email" id="userEmail" hidden>Loading...</div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" data-tab="inventory"><i class="fas fa-boxes"></i> Inventory Management</button>
+            <button class="nav-tab" data-tab="issue"><i class="fas fa-exchange-alt"></i> Issue Tracker</button>
+        </div>
+
+        <div id="inventoryPanel" class="content-panel active">
+            <div class="section-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-cubes"></i> Product Inventory</h2>
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                        <div class="view-toggle">
+                            <button class="view-btn active" data-view="list" onclick="setProductView('list')"><i class="fas fa-list"></i> List</button>
+                            <button class="view-btn" data-view="card" onclick="setProductView('card')"><i class="fas fa-th-large"></i> Card</button>
+                        </div>
+                        <button class="btn btn-primary" id="addProductBtn"><i class="fas fa-plus"></i> Add Product</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="product-actions-bar">
+                        <div class="search-input">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="productSearch" placeholder="Search by name, SKU, location..." onkeyup="filterProducts()">
+                        </div>
+                    </div>
+                    <div class="table-responsive" id="productsContainer">
+                        <div class="loading" style="text-align:center; padding:40px;">Loading products...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="issuePanel" class="content-panel">
+            <div class="section-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-hand-holding-heart"></i> Issue Product to Student</h2>
+                </div>
+                <div class="card-body">
+                    <div class="issue-form-container">
+                        <div class="form-row">
+                            <select id="issueProductSelect" class="form-control">
+                                <option value="">Select Product</option>
+                            </select>
+                            <input type="text" id="studentName" class="form-control" placeholder="Student Full Name">
+                        </div>
+                        <div class="form-row">
+                            <input type="text" id="studentClass" class="form-control" placeholder="Class / Grade">
+                            <input type="date" id="issueDate" class="form-control">
+                        </div>
+                        <div class="form-row">
+                            <input type="number" id="issueQuantity" class="form-control" placeholder="Quantity to Issue" value="1" min="1">
+                        </div>
+                        <button class="btn btn-primary issue-btn" id="issueProductBtn"><i class="fas fa-check-circle"></i> Issue Product</button>
+                    </div>
+
+                    <h3 style="margin-bottom: 16px;"><i class="fas fa-history"></i> Issue & Return History</h3>
+                    <div class="table-responsive">
+                        <table class="issue-log-table">
+                            <thead>
+                                <tr><th>Student</th><th>Class</th><th>Product</th><th>Qty</th><th>Issued Date</th><th>Returned Date</th><th>Status</th><th>Action</th></tr>
+                            </thead>
+                            <tbody id="logTableBody"><tr><td colspan="8" style="text-align:center;">Loading...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="productModal" class="modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3><i class="fas fa-microchip"></i> <span id="modalTitle">Add Product</span></h3>
+                <div class="close-modal-icon" onclick="closeProductModal()"><i class="fas fa-times"></i></div>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="productId">
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label>Product Name *</label>
+                    <input type="text" id="prodName" class="form-control" placeholder="e.g., Arduino Uno">
+                </div>
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label>SKU Code *</label>
+                    <input type="text" id="prodSku" class="form-control" placeholder="Unique code">
+                </div>
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label>Image URL (optional)</label>
+                    <input type="text" id="prodImage" class="form-control" placeholder="https://...">
+                </div>
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label>Storage Location *</label>
+                    <input type="text" id="prodLocation" class="form-control" placeholder="Shelf, Cabinet">
+                </div>
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label>Quantity *</label>
+                    <input type="number" id="prodQty" class="form-control" value="0">
+                </div>
+                <div class="modal-buttons">
+                    <button class="btn btn-outline" onclick="closeProductModal()">Cancel</button>
+                    <button class="btn btn-primary" id="saveProductBtn">Save Product</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyA75kwh-3niO7P4l7YjBSk29EMRCUcMhx4",
+            authDomain: "acdc-inventory-a786f.firebaseapp.com",
+            projectId: "acdc-inventory-a786f",
+            storageBucket: "acdc-inventory-a786f.firebasestorage.app",
+            messagingSenderId: "810343223334",
+            appId: "1:810343223334:web:6a076cf5f42a61418496e7",
+            measurementId: "G-3YR85RXS3H"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const googleProvider = new GoogleAuthProvider();
+        
+        let currentUser = null;
+        let products = [];
+        let issueLogs = [];
+        let currentProductView = "list";
+        let currentProductFilter = "";
+        
+        const loginScreen = document.getElementById('loginScreen');
+        const mainApp = document.getElementById('mainApp');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const loginError = document.getElementById('loginError');
+        
+        document.getElementById('showRegister').addEventListener('click', () => {
+            loginForm.style.display = 'none';
+            registerForm.style.display = 'block';
+            loginError.textContent = '';
+        });
+        
+        document.getElementById('showLogin').addEventListener('click', () => {
+            loginForm.style.display = 'block';
+            registerForm.style.display = 'none';
+            loginError.textContent = '';
+        });
+        
+        document.getElementById('registerBtn').addEventListener('click', async () => {
+            const name = document.getElementById('regName').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const confirm = document.getElementById('regConfirmPassword').value;
+            
+            if (!name || !email || !password) {
+                loginError.textContent = 'Please fill all fields';
+                return;
+            }
+            if (password.length < 6) {
+                loginError.textContent = 'Password must be at least 6 characters';
+                return;
+            }
+            if (password !== confirm) {
+                loginError.textContent = 'Passwords do not match';
+                return;
+            }
+            
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                await updateProfile(userCredential.user, { displayName: name });
+                loginError.style.color = '#10b981';
+                loginError.textContent = '✅ Registration successful!';
+                setTimeout(() => loginError.textContent = '', 2000);
+            } catch (error) {
+                loginError.style.color = '#dc2626';
+                loginError.textContent = error.message;
+            }
+        });
+        
+        document.getElementById('loginBtn').addEventListener('click', async () => {
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!email || !password) {
+                loginError.textContent = 'Please fill all fields';
+                return;
+            }
+            
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                loginError.textContent = '';
+            } catch (error) {
+                loginError.textContent = error.message;
+            }
+        });
+        
+        document.getElementById('googleLoginBtn').addEventListener('click', async () => {
+            try {
+                await signInWithPopup(auth, googleProvider);
+            } catch (error) {
+                loginError.textContent = error.message;
+            }
+        });
+        
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            await signOut(auth);
+        });
+        
+        async function loadProducts() {
+            if (!currentUser) return;
+            try {
+                const q = query(collection(db, "products"), where("userId", "==", currentUser.uid));
+                const querySnapshot = await getDocs(q);
+                products = [];
+                querySnapshot.forEach((doc) => {
+                    products.push({ id: doc.id, ...doc.data() });
+                });
+                renderProductsByView();
+                updateProductSelect();
+            } catch (error) {
+                console.error("Error loading products:", error);
+                showToast("Error loading products");
+            }
+        }
+        
+        async function loadIssueLogs() {
+            if (!currentUser) return;
+            try {
+                const q = query(collection(db, "issueLogs"), where("userId", "==", currentUser.uid));
+                const querySnapshot = await getDocs(q);
+                issueLogs = [];
+                querySnapshot.forEach((doc) => {
+                    issueLogs.push({ id: doc.id, ...doc.data() });
+                });
+                renderIssueLogs();
+            } catch (error) {
+                console.error("Error loading issue logs:", error);
+            }
+        }
+        
+        async function addProduct(productData) {
+            if (!currentUser) return;
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('en-IN');
+            await addDoc(collection(db, "products"), {
+                ...productData,
+                userId: currentUser.uid,
+                userEmail: currentUser.email,
+                createdAt: now.toISOString(),
+                lastReturn: dateStr
+            });
+            await loadProducts();
+        }
+        
+        async function updateProduct(productId, productData) {
+            if (!currentUser) return;
+            await updateDoc(doc(db, "products", productId), productData);
+            await loadProducts();
+        }
+        
+        window.deleteProduct = async (productId) => {
+            if (!currentUser) return;
+            if (confirm("Delete this product permanently?")) {
+                try {
+                    await deleteDoc(doc(db, "products", productId));
+                    await loadProducts();
+                    showToast("✅ Product deleted successfully");
+                } catch (error) {
+                    console.error("Error deleting product:", error);
+                    showToast("❌ Error deleting product. Please check Firebase rules.");
+                }
+            }
+        };
+        
+        async function addIssueLog(logData) {
+            if (!currentUser) return;
+            await addDoc(collection(db, "issueLogs"), {
+                ...logData,
+                userId: currentUser.uid,
+                userEmail: currentUser.email,
+                createdAt: new Date().toISOString()
+            });
+            await loadIssueLogs();
+        }
+        
+        async function updateIssueLog(logId, logData) {
+            if (!currentUser) return;
+            await updateDoc(doc(db, "issueLogs", logId), logData);
+            await loadIssueLogs();
+            await loadProducts();
+        }
+        
+        document.getElementById('exportExcelBtn').addEventListener('click', () => {
+            try {
+                if (typeof XLSX === 'undefined') {
+                    showToast("Loading Excel library, please try again...");
+                    return;
+                }
+                
+                const productData = products.map(p => ({
+                    "Product Name": p.name,
+                    "SKU Code": p.sku,
+                    "Storage Location": p.location,
+                    "Quantity": p.quantity,
+                    "Last Return": p.lastReturn || 'Never',
+                    "Status": p.quantity <= 0 ? 'Out of Stock' : (p.quantity <= 3 ? 'Low Stock' : 'Available')
+                }));
+                
+                const wsData = [
+                    [`${currentUser.displayName || currentUser.email} - INVENTORY REPORT`],
+                    [`Generated on: ${new Date().toLocaleString()}`],
+                    [],
+                    ['Product Name', 'SKU Code', 'Storage Location', 'Quantity', 'Last Return', 'Status'],
+                    ...productData.map(p => [p["Product Name"], p["SKU Code"], p["Storage Location"], p["Quantity"], p["Last Return"], p["Status"]])
+                ];
+                
+                const ws = XLSX.utils.aoa_to_sheet(wsData);
+                ws['!cols'] = [{wch:25}, {wch:18}, {wch:20}, {wch:10}, {wch:15}, {wch:12}];
+                
+                const issueData = issueLogs.map(l => ({
+                    "Student Name": l.studentName,
+                    "Class": l.studentClass,
+                    "Product": l.productName,
+                    "Quantity": l.quantity || 1,
+                    "Issued Date": l.issuedDate,
+                    "Returned Date": l.returnedDate || 'Not Returned',
+                    "Status": l.status === 'issued' ? 'Active Issue' : 'Returned'
+                }));
+                
+                const ws2Data = [
+                    [`ISSUE & RETURN LOG`],
+                    [`Generated on: ${new Date().toLocaleString()}`],
+                    [],
+                    ['Student Name', 'Class', 'Product', 'Quantity', 'Issued Date', 'Returned Date', 'Status'],
+                    ...issueData.map(i => [i["Student Name"], i["Class"], i["Product"], i["Quantity"], i["Issued Date"], i["Returned Date"], i["Status"]])
+                ];
+                
+                const ws2 = XLSX.utils.aoa_to_sheet(ws2Data);
+                ws2['!cols'] = [{wch:22}, {wch:12}, {wch:25}, {wch:8}, {wch:15}, {wch:15}, {wch:12}];
+                
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Stock Inventory');
+                XLSX.utils.book_append_sheet(wb, ws2, 'Issue History');
+                
+                XLSX.writeFile(wb, `ATL_Inventory_${new Date().toISOString().slice(0,10)}.xlsx`);
+                showToast("📎 Excel exported successfully!");
+            } catch (error) {
+                console.error("Export error:", error);
+                showToast("❌ Error exporting Excel. Please refresh and try again.");
+            }
+        });
+        
+        document.getElementById('addProductBtn').addEventListener('click', () => {
+            document.getElementById('modalTitle').innerText = "Add New Product";
+            document.getElementById('productId').value = "";
+            document.getElementById('prodName').value = "";
+            document.getElementById('prodSku').value = "";
+            document.getElementById('prodImage').value = "";
+            document.getElementById('prodLocation').value = "";
+            document.getElementById('prodQty').value = "0";
+            document.getElementById('productModal').style.display = "flex";
+        });
+        
+        document.getElementById('saveProductBtn').addEventListener('click', async () => {
+            const id = document.getElementById('productId').value;
+            const name = document.getElementById('prodName').value.trim();
+            const sku = document.getElementById('prodSku').value.trim();
+            const image = document.getElementById('prodImage').value.trim();
+            const location = document.getElementById('prodLocation').value.trim();
+            const quantity = parseInt(document.getElementById('prodQty').value);
+            
+            if (!name || !sku || !location) {
+                alert("Please fill Name, SKU, and Location");
+                return;
+            }
+            
+            const productData = { name, sku, image, location, quantity };
+            
+            if (id) {
+                await updateProduct(id, productData);
+                showToast("Product updated");
+            } else {
+                await addProduct(productData);
+                showToast("Product added");
+            }
+            closeProductModal();
+        });
+        
+        document.getElementById('issueProductBtn').addEventListener('click', async () => {
+            const pid = document.getElementById('issueProductSelect').value;
+            const sname = document.getElementById('studentName').value.trim();
+            const sclass = document.getElementById('studentClass').value.trim();
+            const quantity = parseInt(document.getElementById('issueQuantity').value) || 1;
+            let idate = document.getElementById('issueDate').value;
+            
+            if (!pid) { alert("Select a product"); return; }
+            if (!sname) { alert("Enter student name"); return; }
+            if (!sclass) { alert("Enter class"); return; }
+            if (!idate) idate = new Date().toISOString().slice(0,10);
+            if (quantity < 1) { alert("Quantity must be at least 1"); return; }
+            
+            const product = products.find(p => p.id === pid);
+            if (!product) { alert("Product not found"); return; }
+            if (product.quantity < quantity) { 
+                alert(`Only ${product.quantity} items available!`); 
+                return; 
+            }
+            
+            await updateProduct(product.id, { ...product, quantity: product.quantity - quantity });
+            
+            await addIssueLog({
+                productId: product.id,
+                productName: product.name,
+                studentName: sname,
+                studentClass: sclass,
+                quantity: quantity,
+                issuedDate: idate,
+                returnedDate: null,
+                status: "issued"
+            });
+            
+            document.getElementById('studentName').value = "";
+            document.getElementById('studentClass').value = "";
+            document.getElementById('issueQuantity').value = "1";
+            document.getElementById('issueProductSelect').value = "";
+            showToast(`📤 Issued ${quantity} x ${product.name} to ${sname}`);
+        });
+        
+        window.returnIssuedProduct = async (logId, productId, quantity) => {
+            const log = issueLogs.find(l => l.id === logId);
+            if (log && log.status === "issued") {
+                const product = products.find(p => p.id === productId);
+                if (product) {
+                    const now = new Date();
+                    const dateStr = now.toLocaleDateString('en-IN');
+                    await updateProduct(product.id, { ...product, quantity: product.quantity + quantity, lastReturn: dateStr });
+                }
+                await updateIssueLog(logId, { ...log, returnedDate: new Date().toISOString().slice(0,10), status: "returned" });
+                showToast(`✅ ${log.productName} returned`);
+            }
+        };
+        
+        function filterProducts() {
+            currentProductFilter = document.getElementById('productSearch').value.toLowerCase();
+            renderProductsByView();
+        }
+        
+        window.setProductView = (view) => {
+            currentProductView = view;
+            document.querySelectorAll('.view-btn').forEach(btn => {
+                if (btn.getAttribute('data-view') === view) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+            renderProductsByView();
+        };
+        
+        function renderProductsByView() {
+            if (currentProductView === 'list') renderListView();
+            else renderCardView();
+        }
+        
+        function renderListView() {
+            const container = document.getElementById('productsContainer');
+            const filtered = currentProductFilter ? products.filter(p => 
+                p.name.toLowerCase().includes(currentProductFilter) ||
+                p.sku.toLowerCase().includes(currentProductFilter) ||
+                p.location.toLowerCase().includes(currentProductFilter)
+            ) : products;
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '<div style="text-align:center;padding:40px;"><i class="fas fa-box-open"></i><br>No products found</div>';
+                return;
+            }
+            
+            let html = `<table class="data-table"><thead><tr><th>Image</th><th>Name / SKU</th><th>Location</th><th>Quantity</th><th>Last Return</th><th>Actions</th></tr></thead><tbody>`;
+            filtered.forEach(p => {
+                let imgHtml = p.image && p.image.trim() ? `<img class="product-img" src="${p.image}" onerror="this.src='https://placehold.co/50x50?text=No+Img'" style="width:50px;height:50px;object-fit:cover;">` : `<div class="product-img" style="background:#eef2ff;display:flex;align-items:center;justify-content:center;width:50px;height:50px;"><i class="fas fa-microchip"></i></div>`;
+                html += `<tr><td>${imgHtml}</td><td><strong>${escapeHtml(p.name)}</strong><br><small>${escapeHtml(p.sku)}</small></td><td><i class="fas fa-map-marker-alt"></i> ${escapeHtml(p.location)}</td><td><span style="background:${p.quantity<=2?'#fee2e2':'#d1fae5'}; padding:4px 12px; border-radius:20px;">${p.quantity}</span></td><td>${p.lastReturn || '—'}</td>
+                    <td><button class="btn" style="background:#eef2ff; padding:6px 12px;" onclick="openEditProduct('${p.id}')"><i class="fas fa-edit"></i></button>
+                    <button class="btn" style="background:#fee2e2; padding:6px 12px;" onclick="deleteProduct('${p.id}')"><i class="fas fa-trash"></i></button></td></tr>`;
+            });
+            html += `</tbody></table>`;
+            container.innerHTML = html;
+        }
+        
+        function renderCardView() {
+            const container = document.getElementById('productsContainer');
+            const filtered = currentProductFilter ? products.filter(p => 
+                p.name.toLowerCase().includes(currentProductFilter) ||
+                p.sku.toLowerCase().includes(currentProductFilter) ||
+                p.location.toLowerCase().includes(currentProductFilter)
+            ) : products;
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '<div style="text-align:center;padding:40px;"><i class="fas fa-box-open"></i><br>No products found</div>';
+                return;
+            }
+            
+            let html = `<div class="card-grid">`;
+            filtered.forEach(p => {
+                let imgContent = (p.image && p.image.trim()) ? `<img src="${p.image}" style="width:100%;height:100%;object-fit:contain;" onerror="this.src='https://placehold.co/140x140?text=No+Image'">` : `<i class="fas fa-microchip" style="font-size:3rem; color:#1e5a8c;"></i>`;
+                html += `<div class="inventory-card"><div class="card-img-area">${imgContent}</div><div class="card-info">
+                    <div style="font-weight:700;">${escapeHtml(p.name)}</div><div style="font-size:0.7rem; color:#6b7280;">${escapeHtml(p.sku)}</div>
+                    <div style="margin:10px 0;"><i class="fas fa-location-dot"></i> ${escapeHtml(p.location)}</div>
+                    <div style="display:flex; justify-content:space-between;"><span style="background:#d1fae5; padding:4px 12px; border-radius:20px;">Qty: ${p.quantity}</span>
+                    <div><button onclick="openEditProduct('${p.id}')" style="background:#eef2ff; border:none; padding:6px 10px; border-radius:8px;"><i class="fas fa-edit"></i></button>
+                    <button onclick="deleteProduct('${p.id}')" style="background:#fee2e2; border:none; padding:6px 10px; border-radius:8px;"><i class="fas fa-trash"></i></button></div></div></div></div>`;
+            });
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+        
+        window.openEditProduct = (id) => {
+            const p = products.find(p => p.id === id);
+            if (p) {
+                document.getElementById('modalTitle').innerText = "Edit Product";
+                document.getElementById('productId').value = p.id;
+                document.getElementById('prodName').value = p.name;
+                document.getElementById('prodSku').value = p.sku;
+                document.getElementById('prodImage').value = p.image || "";
+                document.getElementById('prodLocation').value = p.location;
+                document.getElementById('prodQty').value = p.quantity;
+                document.getElementById('productModal').style.display = "flex";
+            }
+        };
+        
+        function renderIssueLogs() {
+            const tbody = document.getElementById('logTableBody');
+            if (issueLogs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">📭 No issue records</td></tr>';
+                return;
+            }
+            let html = "";
+            issueLogs.forEach(log => {
+                let action = log.status === "issued" ? `<button class="return-action-btn" onclick="returnIssuedProduct('${log.id}', '${log.productId}', ${log.quantity || 1})"><i class="fas fa-undo"></i> Return</button>` : `<span style="color:#10b981;">✓ Returned</span>`;
+                html += `<tr><td><strong>${escapeHtml(log.studentName)}</strong></td><td>${escapeHtml(log.studentClass)}</td><td>${escapeHtml(log.productName)}</td><td>${log.quantity || 1}</td><td>${log.issuedDate}</td><td>${log.returnedDate || '—'}</td>
+                    <td><span class="${log.status === 'issued' ? 'badge-issued' : 'badge-returned'}">${log.status === 'issued' ? '📌 Issued' : '✅ Returned'}</span></td><td>${action}</td></tr>`;
+            });
+            tbody.innerHTML = html;
+        }
+        
+        function updateProductSelect() {
+            const select = document.getElementById('issueProductSelect');
+            select.innerHTML = '<option value="">-- Select Product --</option>';
+            products.forEach(p => {
+                if (p.quantity > 0) {
+                    select.innerHTML += `<option value="${p.id}">${p.name} (${p.quantity} available)</option>`;
+                } else {
+                    select.innerHTML += `<option value="${p.id}" disabled>${p.name} (OUT OF STOCK)</option>`;
+                }
+            });
+        }
+        
+        function escapeHtml(str) { 
+            if (!str) return ""; 
+            return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); 
+        }
+        
+        function showToast(msg) {
+            let t = document.createElement('div');
+            t.innerText = msg;
+            t.style.position = 'fixed';
+            t.style.bottom = '20px';
+            t.style.left = '50%';
+            t.style.transform = 'translateX(-50%)';
+            t.style.backgroundColor = '#1e5a8c';
+            t.style.color = 'white';
+            t.style.padding = '12px 24px';
+            t.style.borderRadius = '12px';
+            t.style.zIndex = '9999';
+            t.style.fontWeight = '500';
+            t.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 2500);
+        }
+        
+        window.closeProductModal = () => {
+            document.getElementById('productModal').style.display = "none";
+        };
+        
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabName = tab.getAttribute('data-tab');
+                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                document.querySelectorAll('.content-panel').forEach(panel => panel.classList.remove('active'));
+                document.getElementById(`${tabName}Panel`).classList.add('active');
+                if (tabName === 'issue') {
+                    renderIssueLogs();
+                    updateProductSelect();
+                }
+            });
+        });
+        
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('userName').textContent = user.displayName || user.email.split('@')[0];
+                document.getElementById('userEmail').textContent = user.email;
+                if (user.photoURL) document.getElementById('userAvatar').src = user.photoURL;
+                loginScreen.style.display = 'none';
+                mainApp.style.display = 'block';
+                document.getElementById('issueDate').valueAsDate = new Date();
+                await loadProducts();
+                await loadIssueLogs();
+            } else {
+                currentUser = null;
+                loginScreen.style.display = 'flex';
+                mainApp.style.display = 'none';
+                loginForm.style.display = 'block';
+                registerForm.style.display = 'none';
+                loginError.textContent = '';
+            }
+        });
+        
+        window.onclick = function(e) {
+            const modal = document.getElementById('productModal');
+            if (e.target === modal) closeProductModal();
+        };
+    </script>
+</body>
+</html>
